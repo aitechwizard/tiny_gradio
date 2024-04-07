@@ -3,7 +3,6 @@ import io
 import sys
 import gradio as gr
 import tinify
-import tempfile
 from PIL import Image
 from dotenv import load_dotenv
 
@@ -34,15 +33,6 @@ def upload_files(files):
     return file_paths
 
 
-def clear_tmp_files():
-    temp_dir = os.path.join(tempfile.gettempdir(), "tiny_gradio")
-    entries = os.listdir(temp_dir)
-    for entry in entries:
-        path = os.path.join(temp_dir, entry)
-        if os.path.isfile(path):
-            os.remove(path)
-
-
 # tiny 图片压缩
 def tiny_compress_core(input_file, output_file, img_width):
     source = tinify.Source.from_file(input_file)
@@ -57,15 +47,9 @@ def tiny_compress_data(input_file, img_width):
     source = tinify.Source.from_file(input_file)
     if img_width != -1:
         resized = source.resize(method="scale", width=img_width)
-        return resized.to_buffer
+        return resized.to_buffer()
     else:
-        return source.to_buffer
-
-
-# webp 图片压缩
-def webp_compress_core(input_file, output_file):
-    im = Image.open(input_file)
-    im.save(output_file, 'WebP', quality=80)
+        return source.to_buffer()
 
 
 def tiny_compress(output_dir, img_path_list):
@@ -98,27 +82,6 @@ def tiny_webp_compress(output_dir, img_path_list):
     print('tiny webp compress success!')
 
 
-def mac_tiny_webp_compress(output_dir, img_path_list):
-    temp_dir = os.path.join(tempfile.gettempdir(), "tiny_gradio")
-    if not os.path.exists(temp_dir):
-        os.makedirs(temp_dir)
-
-    for path in img_path_list:
-        image_name, ext = os.path.splitext(os.path.basename(path))
-        if ext not in valid_ext:
-            continue
-
-        tmp_path = os.path.join(temp_dir, image_name + ext)
-        print('tmp_path', tmp_path)
-        tiny_compress_core(path, tmp_path, -1)
-
-        if os.path.exists(tmp_path):
-            image_output_path = output_dir.rstrip('/') + '/' + image_name + '_compress' + '.webp'
-            webp_compress_core(tmp_path, image_output_path)
-    clear_tmp_files()
-    print('tiny webp compress success!')
-
-
 def compress(single_file, output_dir, compress_type, fu):
     if single_file != '':
         if single_file not in image_path_list:
@@ -130,6 +93,9 @@ def compress(single_file, output_dir, compress_type, fu):
     if output_dir == '':
         return 'Invalid output directory'
 
+    if not os.path.exists(output_dir):
+        return 'Output directory not exists'
+
     print('output dir:', output_dir)
     print('image_path_list:', image_path_list)
     if compress_type == 'tiny':
@@ -137,11 +103,7 @@ def compress(single_file, output_dir, compress_type, fu):
         return 'tiny compress success!'
 
     if compress_type == 'tiny+webp':
-        platform = sys.platform
-        if platform == 'darwin':
-            mac_tiny_webp_compress(output_dir, image_path_list)
-        else:
-            tiny_webp_compress(output_dir, image_path_list)
+        tiny_webp_compress(output_dir, image_path_list)
         return 'tiny+webp compress success!'
 
     return 'None'
