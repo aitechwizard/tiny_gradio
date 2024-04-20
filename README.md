@@ -14,5 +14,20 @@
 
 2、在项目根目录创建 .env 文件，输入 TINIFY_API_KEY=<你的API Key>
 
+3、创建 venv 依赖环境
+```shell
+# 如果是Linux
+pip install -r requirements.txt
+
+# 如果是Mac
+pip install -r requirements_mac.txt
+
+```
+
+4、最后执行 main.py
+```shell
+python main.py
+```
+
 
 **最后非常感谢 tinypng 提供的API！**
