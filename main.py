@@ -83,9 +83,8 @@ def tiny_webp_compress(output_dir, img_path_list):
 
 
 def compress(single_file, output_dir, compress_type, fu):
-    if single_file != '':
-        if single_file not in image_path_list:
-            image_path_list.append(single_file)
+    if single_file is not None and single_file not in image_path_list:
+        image_path_list.append(single_file)
 
     if compress_type not in valid_cp_type:
         return 'Invalid compress type'
@@ -110,15 +109,18 @@ def compress(single_file, output_dir, compress_type, fu):
 
 
 with gr.Blocks() as app:
-    # 文件选择列表
-    file_select_gr = gr.File(label="待压缩图片")
+    # 单张图片上传
+    file_select_gr = gr.File(label="Upload Single Image")
+
+    upload_multi_image_show = gr.File(label="展示多张上传的图片列表")
+
     # 图片保存路径
     output_dir_gr = gr.Textbox(lines=1, label='图片保存路径（必选）', placeholder='压缩后的图片保存路径')
     # 压缩方式选择
-    compress_type_gr = gr.Dropdown(valid_cp_type, value='tiny+webp', label='compress type')
+    compress_type_gr = gr.Dropdown(valid_cp_type, value='tiny+webp', label='压缩方式')
     # 图片上传按钮(多张图片)
     file_upload_btn_gr = gr.UploadButton("Upload Multi Image", file_types=["image"], file_count="multiple")
-    file_upload_btn_gr.upload(upload_files, file_upload_btn_gr, file_select_gr)
+    file_upload_btn_gr.upload(upload_files, file_upload_btn_gr, upload_multi_image_show)
 
     gr.Interface(
         fn=compress,
